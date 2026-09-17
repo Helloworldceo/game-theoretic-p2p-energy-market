@@ -1,55 +1,53 @@
-"""Simple double auction clearing."""
+"""Double auction with profit accounting."""
 
 from __future__ import annotations
-import numpy as np
 from typing import List, Tuple
 from .agents import Prosumer
 
 
-def clear_double_auction(agents: List[Prosumer]) -> Tuple[float, list]:
+def clear_double_auction(agents: List[Prosumer]) -> Tuple[float, list, float]:
     """
-    Collect bids/offers, find a uniform clearing price, match quantity.
-
-    Returns
-    -------
-    clearing_price : float
-    trades : list of (seller, buyer, quantity, price)
+    Returns clearing_price, list of trades (seller_idx, buyer_idx, qty, price), total_volume.
+    Also updates agent.profit.
     """
-    offers = []  # (price, qty, agent_idx)  qty > 0
-    bids = []    # (price, qty, agent_idx)  qty < 0
+    offers = []
+    bids = []
 
     for i, a in enumerate(agents):
         qty, price = a.bid()
         if qty > 0.05:
-            offers.append((price, qty, i))
+            offers.append([price, qty, i])
         elif qty < -0.05:
-            bids.append((price, -qty, i))  # store positive demand
+            bids.append([price, -qty, i])
 
-    # Sort offers ascending (cheapest first), bids descending (highest willingness)
     offers.sort(key=lambda x: x[0])
     bids.sort(key=lambda x: -x[0])
 
     trades = []
-    clearing_price = None
-    oi, bi = 0, 0
+    volume = 0.0
+    clearing_price = 0.0
+    oi = bi = 0
+
     while oi < len(offers) and bi < len(bids):
-        op, oq, oi_idx = offers[oi]
+        op, oq, si = offers[oi]
         bp, bq, bi_idx = bids[bi]
         if op > bp:
-            break  # no more mutually beneficial trades
-
+            break
         qty = min(oq, bq)
-        price = 0.5 * (op + bp)  # mid-point pricing
-        clearing_price = price if clearing_price is None else clearing_price
+        price = 0.5 * (op + bp)
+        clearing_price = price
+        trades.append((si, bi_idx, qty, price))
+        volume += qty
 
-        trades.append((oi_idx, bi_idx, qty, price))
+        # Profit: seller receives price*qty, buyer pays price*qty
+        agents[si].profit += price * qty
+        agents[bi_idx].profit -= price * qty
 
-        offers[oi] = (op, oq - qty, oi_idx)
-        bids[bi] = (bp, bq - qty, bi_idx)
-
+        offers[oi][1] -= qty
+        bids[bi][1] -= qty
         if offers[oi][1] < 1e-6:
             oi += 1
         if bids[bi][1] < 1e-6:
             bi += 1
 
-    return clearing_price if clearing_price is not None else 0.0, trades
+    return clearing_price, trades, volume

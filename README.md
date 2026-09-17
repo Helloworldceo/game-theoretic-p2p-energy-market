@@ -1,16 +1,16 @@
 # Game-Theoretic Peer-to-Peer Energy Market
 
-Complete project simulating strategic interactions among prosumers in a local electricity market.
+Simulation of strategic interactions among prosumers in a local electricity market.
 
 ## Features
 
-- Classic normal-form games (Prisoner's Dilemma, Coordination, Battle of the Sexes)
-- Algorithms to find pure and mixed Nash equilibria in small games
-- Multi-prosumer energy market environment
-- Double auction mechanism
-- Stackelberg (leader-follower) example
-- Simple multi-agent learning demonstration
-- Metrics: market efficiency, agent profits, renewable utilization, price volatility
+- Classic normal-form games + pure & mixed Nash solvers
+- Multi-prosumer P2P market with double auction
+- Agent profit tracking and strategy comparison
+- Stackelberg (leader-follower) pricing example
+- Market efficiency & volume metrics
+- Time-series plots of clearing price and traded volume
+- Clean, modular Python code
 
 ## Quick Start
 
@@ -24,12 +24,12 @@ pip install -r requirements.txt
 python -m src.main
 ```
 
-## Structure
+Plots are saved to `results/`.
 
-```
-src/
-├── games/               # Classic games + Nash solvers
-├── market/              # P2P market, auction, agents
-├── stackelberg/
-└── main.py
-```
+## Key Concepts Demonstrated
+
+- Nash equilibrium (pure & mixed)
+- Dominant strategies
+- Double auction market clearing
+- Stackelberg leadership
+- Effect of bidding strategy on profit and market efficiency
